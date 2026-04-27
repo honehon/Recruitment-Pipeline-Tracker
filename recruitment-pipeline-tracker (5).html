@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruitment Pipeline Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --cream: #faf8f4;
+  --warm-white: #ffffff;
+  --ink: #1c1917;
+  --ink-light: #44403c;
+  --muted: #a8a29e;
+  --border: #e7e5e0;
+  --border-strong: #d4cfc7;
+  --sage: #4a7c59;
+  --sage-light: #ebf2ee;
+  --coral: #c0392b;
+  --coral-light: #fdf0ef;
+  --amber: #b45309;
+  --amber-light: #fef3e2;
+  --sky: #1d4ed8;
+  --sky-light: #eff6ff;
+  --violet: #6d28d9;
+  --violet-light: #f5f3ff;
+  --teal: #0f766e;
+  --teal-light: #f0fdfa;
+  --pink: #be185d;
+  --pink-light: #fdf2f8;
+  --indigo: #3730a3;
+  --indigo-light: #eef2ff;
+  --orange: #c2410c;
+  --orange-light: #fff7ed;
+  --shadow-sm: 0 1px 3px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04);
+  --shadow-md: 0 4px 16px rgba(28,25,23,0.08), 0 2px 6px rgba(28,25,23,0.04);
+  --shadow-lg: 0 12px 40px rgba(28,25,23,0.12), 0 4px 12px rgba(28,25,23,0.06);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  padding: 32px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+
+.sidebar-logo {
+  padding: 0 28px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 24px;
+}
+
+.sidebar-logo .logo-mark {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-logo .logo-sub {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.sidebar-section-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  padding: 0 28px;
+  margin-bottom: 6px;
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; margin-bottom: 24px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: 8px;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  text-decoration: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 20px 12px 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── MAIN ── */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.topbar-left { display: flex; align-items: baseline; gap: 12px; }
+
+.page-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.page-period {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: var(--ink-light); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-outline { background: transparent; color: var(--ink-light); border: 1.5px solid var(--border-strong); }
+.btn-outline:hover { border-color: var(--ink); color: var(--ink); background: var(--cream); }
+.btn-sage { background: var(--sage); color: #fff; }
+.btn-sage:hover { background: #3d6b4a; transform: translateY(-1px); }
+.btn-danger { background: var(--coral-light); color: var(--coral); border: 1px solid rgba(192,57,43,0.2); }
+.btn-danger:hover { background: #fae0dd; }
+.btn-sm { padding: 5px 12px; font-size: 0.72rem; border-radius: 6px; }
+.btn-xs { padding: 3px 9px; font-size: 0.65rem; border-radius: 5px; }
+
+/* ── CONTENT ── */
+.content { padding: 32px 40px; flex: 1; }
+
+/* ── KPI ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+
+.kpi-card {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 12px 0 0 12px;
+}
+.kpi-card:nth-child(1)::before { background: var(--violet); }
+.kpi-card:nth-child(2)::before { background: var(--sage); }
+.kpi-card:nth-child(3)::before { background: var(--amber); }
+.kpi-card:nth-child(4)::before { background: var(--coral); }
+
+.kpi-eyebrow {
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px;
+}
+.kpi-number {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2.2rem; font-weight: 800;
+  line-height: 1; margin-bottom: 6px;
+  letter-spacing: -0.04em;
+}
+.kpi-card:nth-child(1) .kpi-number { color: var(--violet); }
+.kpi-card:nth-child(2) .kpi-number { color: var(--sage); }
+.kpi-card:nth-child(3) .kpi-number { color: var(--amber); }
+.kpi-card:nth-child(4) .kpi-number { color: var(--coral); }
+.kpi-note { font-size: 0.68rem; color: var(--muted); font-weight: 400; }
+
+/* ── TWO COL ── */
+.two-col { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 20px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem; font-weight: 800;
+  color: var(--ink); letter-spacing: -0.02em;
+}
+
+.card-sub { font-size: 0.65rem; color: var(--muted); margin-top: 2px; font-weight: 400; }
+
+/* ── FUNNEL ── */
+.funnel { display: flex; flex-direction: column; gap: 10px; }
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 48px 64px;
+  align-items: center;
+  gap: 12px;
+}
+.funnel-label { font-size: 0.72rem; color: var(--ink-light); font-weight: 500; }
+.funnel-track { height: 24px; background: var(--cream); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+.funnel-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.9s cubic-bezier(0.16,1,0.3,1);
+  display: flex; align-items: center; padding-left: 8px;
+  font-size: 0.6rem; color: rgba(255,255,255,0.85); font-weight: 600;
+}
+.fill-0 { background: linear-gradient(90deg,#6d28d9,#8b5cf6); }
+.fill-1 { background: linear-gradient(90deg,#0f766e,#14b8a6); }
+.fill-2 { background: linear-gradient(90deg,#3730a3,#6366f1); }
+.fill-3 { background: linear-gradient(90deg,#c2410c,#f97316); }
+.fill-4 { background: linear-gradient(90deg,#be185d,#ec4899); }
+.fill-5 { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
+.fill-6 { background: linear-gradient(90deg,#57534e,#a8a29e); }
+
+.funnel-num { font-size: 0.8rem; font-weight: 700; text-align: right; font-family: 'Plus Jakarta Sans', sans-serif; }
+.funnel-pct { font-size: 0.6rem; color: var(--muted); text-align: right; }
+.funnel-sep { height: 1px; background: var(--border); grid-column: 1/-1; }
+
+/* ── SOURCE ── */
+.source-list { display: flex; flex-direction: column; gap: 14px; }
+.source-item { display: flex; flex-direction: column; gap: 5px; }
+.source-row { display: flex; justify-content: space-between; align-items: center; }
+.source-name { font-size: 0.72rem; color: var(--ink-light); font-weight: 500; }
+.source-pct { font-size: 0.72rem; font-weight: 700; }
+.source-track { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.source-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.16,1,0.3,1); }
+
+/* ── TABLE ── */
+.table-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.flt-select {
+  background: var(--cream); border: 1px solid var(--border-strong);
+  color: var(--ink-light); border-radius: 6px; padding: 5px 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem;
+  outline: none; cursor: pointer; font-weight: 500;
+}
+.flt-select:focus { border-color: var(--ink); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; padding: 8px 12px;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 2px solid var(--border);
+}
+tbody td {
+  padding: 12px 12px; border-bottom: 1px solid var(--border);
+  font-size: 0.78rem; vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--cream); }
+
+.stage-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 100px;
+  font-size: 0.65rem; font-weight: 600; white-space: nowrap;
+}
+.s-cv-screening  { background: var(--violet-light); color: var(--violet); }
+.s-hr-interview  { background: var(--teal-light);   color: var(--teal); }
+.s-user-interview{ background: var(--indigo-light);  color: var(--indigo); }
+.s-technical-test{ background: var(--orange-light);  color: var(--orange); }
+.s-offering      { background: var(--pink-light);    color: var(--pink); }
+.s-hired         { background: var(--sky-light);     color: var(--sky); }
+.s-rejected      { background: #f5f5f4;              color: #78716c; }
+.s-hold          { background: var(--amber-light);   color: var(--amber); }
+
+.days-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 5px;
+  font-size: 0.68rem; font-weight: 700;
+  background: var(--amber-light); color: var(--amber);
+}
+.modal-scroll { max-height: 75vh; overflow-y: auto; padding-right: 4px; }
+  display:inline-flex; align-items:center; justify-content:center;
+  width:24px; height:24px; border-radius:50%;
+  font-size:0.65rem; font-weight:800;
+}
+.rank-A { background:#fef9c3; color:#854d0e; border:1.5px solid #fde047; }
+.rank-B { background:#f0fdf4; color:#166534; border:1.5px solid #86efac; }
+.rank-C { background:#eff6ff; color:#1e40af; border:1.5px solid #93c5fd; }
+.rank-D { background:#fdf4ff; color:#7e22ce; border:1.5px solid #d8b4fe; }
+.cv-link { color:var(--sky); font-size:0.7rem; text-decoration:none; font-weight:500; }
+.cv-link:hover { text-decoration:underline; }
+.notes-cell { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); font-size:0.7rem; }
+
+/* ── IMPORT ZONE ── */
+.import-zone {
+  border: 2px dashed var(--border-strong);
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--cream);
+}
+.import-zone:hover, .import-zone.drag-over {
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+.import-icon { font-size: 2rem; margin-bottom: 8px; }
+.import-title { font-size: 0.8rem; font-weight: 600; color: var(--ink-light); margin-bottom: 4px; }
+.import-hint { font-size: 0.68rem; color: var(--muted); }
+.import-formats {
+  display: flex; gap: 6px; justify-content: center; margin-top: 10px;
+}
+.fmt-tag {
+  padding: 2px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.fmt-xlsx { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.fmt-csv  { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.fmt-pdf  { background: #fce4ec; color: #c62828; border: 1px solid #f8bbd0; }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(28,25,23,0.45);
+  backdrop-filter: blur(4px); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--warm-white); border-radius: 16px;
+  padding: 32px; width: 100%; max-width: 500px;
+  transform: translateY(10px); transition: transform 0.22s;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem; font-weight: 800;
+  margin-bottom: 22px; color: var(--ink); letter-spacing: -0.03em;
+}
+.modal-title em { font-style: normal; color: var(--sage); }
+
+.fg { margin-bottom: 14px; }
+.fg label { display: block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.fg input, .fg select {
+  width: 100%; padding: 9px 13px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 7px; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem; color: var(--ink);
+  background: var(--cream); outline: none; transition: border-color 0.15s;
+}
+.fg input:focus, .fg select:focus { border-color: var(--ink); background: #fff; }
+.fg select option { background: #fff; }
+.fgrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; }
+
+/* ── IMPORT PREVIEW ── */
+.preview-table-wrap { overflow-x: auto; max-height: 260px; overflow-y: auto; margin: 14px 0; border: 1px solid var(--border); border-radius: 8px; }
+.preview-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+.preview-table th { background: var(--cream); padding: 7px 10px; border-bottom: 1px solid var(--border); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; position: sticky; top: 0; }
+.preview-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.preview-table tr:last-child td { border-bottom: none; }
+.col-map { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+.col-map-item { display: flex; flex-direction: column; gap: 3px; }
+.col-map-item label { font-size: 0.6rem; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.col-map-item select { padding: 5px 8px; border: 1px solid var(--border-strong); border-radius: 5px; font-size: 0.7rem; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink); background: var(--cream); outline: none; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  background: var(--ink); color: #fff;
+  padding: 11px 18px; border-radius: 9px;
+  font-size: 0.75rem; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  transform: translateY(20px); opacity: 0; transition: all 0.25s;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); flex-shrink: 0; }
+
+/* ── EMPTY ── */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-state .ei { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-state p { font-size: 0.8rem; }
+
+/* ── SETTINGS ROW ── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 0 0 16px; }
+
+@media (max-width: 960px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .content { padding: 20px; }
+  .topbar { padding: 0 20px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">Talent<br>Tracker</div>
+      <div class="logo-sub">IT Recruitment</div>
+    </div>
+    <div class="sidebar-section-label">Menu</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" onclick="openImport()"><span class="nav-icon">📥</span> Import Data</a>
+      <a class="nav-item" onclick="openAdd()"><span class="nav-icon">➕</span> Add Candidate</a>
+      <a class="nav-item" onclick="openSettings()"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-section-label">Stages</div>
+    <nav class="sidebar-nav" id="stage-nav"></nav>
+    <div class="sidebar-bottom">
+      <div class="nav-item" onclick="syncFromSheets()" style="cursor:pointer">
+        <span class="nav-icon">☁️</span> Sync dari Sheets
+      </div>
+      <div class="nav-item" onclick="exportCSV()" style="cursor:pointer">
+        <span class="nav-icon">⬇️</span> Export CSV
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="page-title">Pipeline Overview</div>
+        <div class="page-period" id="period-label">2025</div>
+      </div>
+      <div class="topbar-right">
+        <div id="sync-status" style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--muted);font-weight:500;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--cream)">
+          <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--border-strong);display:inline-block;flex-shrink:0"></span>
+          <span id="sync-label">Sheets: —</span>
+        </div>
+        <button class="btn btn-outline" onclick="openImport()">📥 Import Excel / PDF</button>
+        <button class="btn btn-primary" onclick="openAdd()">+ Add Candidate</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-eyebrow">Total Applicants</div>
+          <div class="kpi-number" id="k-total">0</div>
+          <div class="kpi-note">Semua tahap</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-eyebrow">Positions Filled</div>
+          <div class="kpi-number" id="k-hired">0</div>
+          <div class="kpi-note" id="k-hired-note">Hired</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-eyebrow">Avg. Time to Hire</div>
+          <div class="kpi-number" id="k-tth">—</div>
+          <div class="kpi-note">Hari apply → hired</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-eyebrow">Offer Accept Rate</div>
+          <div class="kpi-number" id="k-oar">—</div>
+          <div class="kpi-note" id="k-oar-note">Offer vs hired</div>
+        </div>
+      </div>
+
+      <!-- FUNNEL + SOURCE -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-heading">Recruitment Funnel</div>
+              <div class="card-sub" id="funnel-sub">All Roles Combined</div>
+            </div>
+            <select class="flt-select" id="funnel-role-filter" onchange="renderAll()" style="font-size:0.7rem">
+              <option value="">All Roles</option>
+            </select>
+          </div>
+          <div class="funnel" id="funnel"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-heading">Source of Hire</div>
+              <div class="card-sub">Dari mana kandidat datang</div>
+            </div>
+          </div>
+          <div class="source-list" id="source-list"></div>
+        </div>
+
+        <!-- ROLE CHART -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-heading">Top Role by Applications</div>
+              <div class="card-sub">Posisi yang paling banyak dilamar</div>
+            </div>
+          </div>
+          <div class="source-list" id="role-chart"></div>
+        </div>
+      </div>
+
+      <!-- CANDIDATE TABLE -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-heading">Candidate List</div>
+            <div class="card-sub" id="table-count">0 kandidat</div>
+          </div>
+          <div class="table-filters">
+            <select class="flt-select" id="f-stage" onchange="renderAll()">
+              <option value="">All Stages</option>
+              <option>CV Screening</option><option>HR Interview</option>
+              <option>User Interview</option><option>Technical Test</option>
+              <option>Offering Letter</option><option>Hired</option>
+              <option>Rejected</option><option>Hold</option>
+            </select>
+            <select class="flt-select" id="f-role" onchange="renderAll()">
+              <option value="">All Roles</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama</th><th>Role</th><th>Pendidikan</th><th>Pengalaman</th>
+                <th>Stage</th><th>Rank</th><th>Source</th>
+                <th>CV</th><th>Apply Date</th><th>Days</th><th>Notes</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" style="display:none">
+          <div class="ei">🗂️</div>
+          <p>Belum ada kandidat.<br>Klik <strong>+ Add Candidate</strong> atau <strong>Import Excel/PDF</strong> untuk mulai.</p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL: ADD/EDIT -->
+<div class="overlay" id="m-cand">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="m-cand-title">Add <em>Candidate</em></div>
+    <div class="modal-scroll">
+      <!-- Row 1: Nama & Role -->
+      <div class="fgrow">
+        <div class="fg"><label>Nama Lengkap *</label><input type="text" id="i-name" placeholder="Budi Santoso"></div>
+        <div class="fg"><label>Role Applied *</label><input type="text" id="i-role" placeholder="Backend Engineer" list="role-dl"><datalist id="role-dl"></datalist></div>
+      </div>
+      <!-- Row 2: Education -->
+      <div class="fg">
+        <label>Pendidikan Terakhir</label>
+        <select id="i-edu">
+          <option value="">— Pilih —</option>
+          <option>SMA/SMK</option><option>D3</option><option>S1</option>
+          <option>S2</option><option>S3</option><option>Lainnya</option>
+        </select>
+      </div>
+      <!-- Row 3: Experience -->
+      <div class="fg">
+        <label>Tahun Pengalaman</label>
+        <select id="i-exp">
+          <option value="">— Pilih —</option>
+          <option>Fresh Graduate</option><option>&lt; 1 tahun</option>
+          <option>1-2 tahun</option><option>3-5 tahun</option>
+          <option>5-10 tahun</option><option>&gt; 10 tahun</option>
+        </select>
+      </div>
+      <!-- Row 3: Stage & Source -->
+      <div class="fgrow">
+        <div class="fg">
+          <label>Stage *</label>
+          <select id="i-stage">
+            <option>CV Screening</option><option>HR Interview</option>
+            <option>User Interview</option><option>Technical Test</option>
+            <option>Offering Letter</option><option>Hired</option>
+            <option>Rejected</option><option>Hold</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Source</label>
+          <select id="i-source">
+            <option>LinkedIn</option><option>JobStreet</option><option>Glints</option>
+            <option>Referral</option><option>Company Website</option>
+            <option>Kalibrr</option><option>Indeed</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <!-- Row 4: Rank & CV Link -->
+      <div class="fgrow">
+        <div class="fg">
+          <label>Rank Kandidat</label>
+          <select id="i-rank">
+            <option value="">— Pilih —</option>
+            <option value="A">A — Sangat Direkomendasikan</option>
+            <option value="B">B — Direkomendasikan</option>
+            <option value="C">C — Pertimbangkan</option>
+            <option value="D">D — Tidak Direkomendasikan</option>
+          </select>
+        </div>
+        <div class="fg"><label>Link CV / Portfolio</label><input type="url" id="i-cv" placeholder="https://drive.google.com/..."></div>
+      </div>
+      <!-- Row 5: Apply Date & Join Date -->
+      <div class="fgrow">
+        <div class="fg"><label>Apply Date *</label><input type="date" id="i-date"></div>
+        <div class="fg"><label>Join Date (jika sudah join)</label><input type="date" id="i-joindate"></div>
+      </div>
+      <!-- Row 6: Hire Date -->
+      <div class="fgrow">
+        <div class="fg"><label>Hire Date (jika hired)</label><input type="date" id="i-hiredate"></div>
+        <div class="fg"></div>
+      </div>
+      <!-- Notes -->
+      <div class="fg">
+        <label>Notes</label>
+        <textarea id="i-notes" placeholder="Catatan tentang kandidat ini..." style="width:100%;padding:9px 13px;border:1.5px solid var(--border-strong);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;color:var(--ink);background:var(--cream);outline:none;resize:vertical;min-height:70px;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor='var(--border-strong)'"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeM('m-cand')">Batal</button>
+      <button class="btn btn-primary" onclick="saveCandidate()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORT -->
+<div class="overlay" id="m-import">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">Import <em>Data</em></div>
+
+    <div class="import-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <div class="import-icon">📂</div>
+      <div class="import-title">Drag & drop file atau klik untuk pilih</div>
+      <div class="import-hint">Data akan otomatis terbaca dan dipetakan ke kolom yang sesuai</div>
+      <div class="import-formats">
+        <span class="fmt-tag fmt-xlsx">XLSX</span>
+        <span class="fmt-tag fmt-csv">CSV</span>
+        <span class="fmt-tag fmt-pdf">PDF (teks)</span>
+      </div>
+    </div>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleFile(this.files[0])">
+
+    <div id="import-preview" style="display:none">
+      <div style="margin:16px 0 8px;font-size:0.72rem;font-weight:600;color:var(--ink-light)">Pemetaan Kolom</div>
+      <div class="col-map" id="col-map"></div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px" id="preview-label"></div>
+      <div class="preview-table-wrap">
+        <table class="preview-table">
+          <thead id="preview-head"></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pdf-manual" style="display:none">
+      <div style="margin:14px 0 8px;font-size:0.72rem;font-weight:600;color:var(--ink-light)">PDF terdeteksi — masukkan data secara manual dari PDF:</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:12px">PDF tidak bisa dibaca otomatis karena format yang bervariasi. Salin data dari PDF lalu isi form di bawah, atau gunakan file Excel/CSV untuk import otomatis.</div>
+      <button class="btn btn-sage" onclick="closeM('m-import');openAdd()">Buka Form Input Manual</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeM('m-import');resetImport()">Batal</button>
+      <button class="btn btn-primary" id="btn-import-confirm" style="display:none" onclick="confirmImport()">Import Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SETTINGS -->
+<div class="overlay" id="m-settings">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">App <em>Settings</em></div>
+    <div class="settings-grid">
+      <div class="fg"><label>Label Periode</label><input type="text" id="s-period" placeholder="Q1 2025 · Jan–Mar"></div>
+      <div class="fg"><label>Nama Tim / Perusahaan</label><input type="text" id="s-company" placeholder="PT Example"></div>
+    </div>
+    <div class="fg">
+      <label>🔗 Google Apps Script URL</label>
+      <input type="text" id="s-sheets-url" placeholder="https://script.google.com/macros/s/...">
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:5px">Paste URL dari Google Apps Script untuk sync data ke Google Sheets secara otomatis.</div>
+    </div>
+    <div id="sheets-test-result" style="display:none;margin-top:-6px;margin-bottom:10px;font-size:0.7rem;padding:8px 12px;border-radius:6px"></div>
+    <button class="btn btn-outline btn-sm" onclick="testSheetsConnection()" style="margin-bottom:16px">🔌 Test Koneksi</button>
+    <div class="divider"></div>
+    <div class="fg"><label style="color:var(--coral)">Danger Zone</label>
+      <button class="btn btn-danger" onclick="resetData()">🗑 Hapus Semua Data Kandidat</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeM('m-settings')">Batal</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toast-msg"></span></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE & STORAGE
+═══════════════════════════════════════════ */
+const CK = 'rpt3_candidates';
+const SK = 'rpt3_settings';
+const STAGES = ['CV Screening','HR Interview','User Interview','Technical Test','Offering Letter','Hired','Rejected','Hold'];
+const STAGE_CLS = {
+  'CV Screening':  's-cv-screening',
+  'HR Interview':  's-hr-interview',
+  'User Interview':'s-user-interview',
+  'Technical Test':'s-technical-test',
+  'Offering Letter':'s-offering',
+  'Hired':         's-hired',
+  'Rejected':      's-rejected',
+  'Hold':          's-hold',
+};
+const FILL_CLS  = ['fill-0','fill-1','fill-2','fill-3','fill-4','fill-5','fill-6'];
+const SRC_COLORS = ['#6d28d9','#4a7c59','#b45309','#c0392b','#1d4ed8','#0891b2','#7c3aed'];
+
+// Hardcoded Apps Script URL (dari user)
+const SHEETS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxXgoE-NE0uWEjOzQxwVA6QehUZj1ovba6NbcgbNRPwtSM7yD6GV3vWUzRStnVElkAU/exec';
+
+let editId = null;
+let importRows = [];
+let importHeaders = [];
+
+function loadC() { try { return JSON.parse(localStorage.getItem(CK)) || []; } catch { return []; } }
+function saveC(d) { localStorage.setItem(CK, JSON.stringify(d)); }
+function loadS() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
+function saveS(s) { localStorage.setItem(SK, JSON.stringify(s)); }
+
+function getSheetsUrl() {
+  const s = loadS();
+  return (s.sheetsUrl && s.sheetsUrl.trim()) ? s.sheetsUrl.trim() : SHEETS_URL_DEFAULT;
+}
+
+/* ═══════════════════════════════════════════
+   GOOGLE SHEETS SYNC — per-row operations
+═══════════════════════════════════════════ */
+function setSyncStatus(status, msg) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (!dot || !label) return;
+  const colors = { ok:'#4a7c59', error:'#c0392b', syncing:'#b45309', idle:'#d4cfc7' };
+  dot.style.background = colors[status] || colors.idle;
+  label.textContent = 'Sheets: ' + msg;
+}
+
+async function sheetsPost(payload) {
+  const url = getSheetsUrl();
+  if (!url) return;
+  setSyncStatus('syncing', 'Menyimpan...');
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    setSyncStatus('ok', 'Tersimpan ✓');
+  } catch(e) {
+    setSyncStatus('error', 'Gagal sync');
+    console.warn('Sheets sync error:', e);
+  }
+}
+
+// Add single candidate row
+function sheetsAdd(candidate) {
+  return sheetsPost({ action: 'add', candidate });
+}
+
+// Update single candidate row by id
+function sheetsUpdate(candidate) {
+  return sheetsPost({ action: 'update', candidate });
+}
+
+// Delete single row by id
+function sheetsDelete(id) {
+  return sheetsPost({ action: 'delete', id });
+}
+
+// Full replace — used for import & reset
+function sheetsReplaceAll(data) {
+  return sheetsPost({ action: 'save_all', data });
+}
+
+async function loadFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) return null;
+  setSyncStatus('syncing', 'Mengambil data...');
+  try {
+    const res = await fetch(url + '?t=' + Date.now());
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const normalized = data.map(row => ({
+        id:        String(row.id || row.ID || uid()),
+        name:      String(row.name || row.Nama || row.nama || ''),
+        role:      String(row.role || row.Role || row.posisi || ''),
+        edu:       String(row.edu  || row.Education || row.Pendidikan || ''),
+        exp:       String(row.exp  || row.Experience || row['Tahun Pengalaman'] || ''),
+        stage:     String(row.stage || row.Stage || row.status || 'CV Screening'),
+        source:    String(row.source || row.Source || row.sumber || 'Other'),
+        rank:      String(row.rank  || row.Rank  || ''),
+        cv:        String(row.cv    || row.CV    || row['Link CV'] || ''),
+        applyDate: String(row.applyDate || row['Apply Date'] || row.tanggal || today()),
+        hireDate:  String(row.hireDate  || row['Hire Date']  || ''),
+        joinDate:  String(row.joinDate  || row['Join Date']  || ''),
+        notes:     String(row.notes     || row.Notes         || ''),
+      })).filter(r => r.name && r.role);
+      saveC(normalized);
+      setSyncStatus('ok', `${normalized.length} data dimuat ✓`);
+      return normalized;
+    }
+    setSyncStatus('ok', 'Terhubung (kosong)');
+    return [];
+  } catch(e) {
+    setSyncStatus('error', 'Gagal terhubung');
+    console.warn('Sheets load error:', e);
+    return null;
+  }
+}
+
+async function testSheetsConnection() {
+  const url = document.getElementById('s-sheets-url').value.trim() || SHEETS_URL_DEFAULT;
+  const resultEl = document.getElementById('sheets-test-result');
+  resultEl.style.display = 'block';
+  resultEl.style.background = '#fef3e2';
+  resultEl.style.color = '#b45309';
+  resultEl.style.border = '1px solid #f5d78e';
+  resultEl.textContent = '⏳ Menguji koneksi...';
+  try {
+    const res = await fetch(url + '?t=' + Date.now());
+    const data = await res.json();
+    resultEl.style.background = '#ebf2ee';
+    resultEl.style.color = '#4a7c59';
+    resultEl.style.border = '1px solid #b0d4bc';
+    resultEl.textContent = `✓ Koneksi berhasil! ${Array.isArray(data) ? data.length + ' baris ditemukan di Sheets.' : 'Sheet kosong — siap dipakai.'}`;
+  } catch(e) {
+    resultEl.style.background = '#fdf0ef';
+    resultEl.style.color = '#c0392b';
+    resultEl.style.border = '1px solid #f5b8b3';
+    resultEl.textContent = '✗ Gagal terhubung. Pastikan URL benar dan deployment sudah "Anyone can access".';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function daysBetween(a,b) { return Math.round(Math.abs(new Date(b)-new Date(a))/86400000); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) {
+  if (!d) return '—';
+  try { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y.slice(2)}`; }
+  catch { return d; }
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function toast(msg) {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+function openM(id)  { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
+  if(e.target===o) o.classList.remove('open');
+}));
+
+/* ═══════════════════════════════════════════
+   CANDIDATE CRUD
+═══════════════════════════════════════════ */
+function openAdd() {
+  editId=null;
+  document.getElementById('m-cand-title').innerHTML='Add <em>Candidate</em>';
+  document.getElementById('i-name').value='';
+  document.getElementById('i-role').value='';
+  document.getElementById('i-edu').value='';
+  document.getElementById('i-exp').value='';
+  document.getElementById('i-stage').value='CV Screening';
+  document.getElementById('i-source').value='LinkedIn';
+  document.getElementById('i-rank').value='';
+  document.getElementById('i-cv').value='';
+  document.getElementById('i-date').value=today();
+  document.getElementById('i-hiredate').value='';
+  document.getElementById('i-joindate').value='';
+  document.getElementById('i-notes').value='';
+  const roles=[...new Set(loadC().map(c=>c.role))];
+  document.getElementById('role-dl').innerHTML=roles.map(r=>`<option value="${r}">`).join('');
+  openM('m-cand');
+}
+
+function openEdit(id) {
+  const c=loadC().find(x=>x.id===id); if(!c) return;
+  editId=id;
+  document.getElementById('m-cand-title').innerHTML='Edit <em>Candidate</em>';
+  document.getElementById('i-name').value=c.name;
+  document.getElementById('i-role').value=c.role;
+  document.getElementById('i-edu').value=c.edu||'';
+  document.getElementById('i-exp').value=c.exp||'';
+  document.getElementById('i-stage').value=c.stage;
+  document.getElementById('i-source').value=c.source;
+  document.getElementById('i-rank').value=c.rank||'';
+  document.getElementById('i-cv').value=c.cv||'';
+  document.getElementById('i-date').value=c.applyDate;
+  document.getElementById('i-hiredate').value=c.hireDate||'';
+  document.getElementById('i-joindate').value=c.joinDate||'';
+  document.getElementById('i-notes').value=c.notes||'';
+  openM('m-cand');
+}
+
+function saveCandidate() {
+  const name=document.getElementById('i-name').value.trim();
+  const role=document.getElementById('i-role').value.trim();
+  const edu=document.getElementById('i-edu').value;
+  const exp=document.getElementById('i-exp').value;
+  const stage=document.getElementById('i-stage').value;
+  const source=document.getElementById('i-source').value;
+  const rank=document.getElementById('i-rank').value;
+  const cv=document.getElementById('i-cv').value.trim();
+  const applyDate=document.getElementById('i-date').value;
+  const hireDate=document.getElementById('i-hiredate').value;
+  const joinDate=document.getElementById('i-joindate').value;
+  const notes=document.getElementById('i-notes').value.trim();
+  if(!name||!role||!applyDate){ alert('Nama, role, dan apply date wajib diisi.'); return; }
+  const data=loadC();
+  let candidate;
+  if(editId){
+    const i=data.findIndex(x=>x.id===editId);
+    if(i>-1){ data[i]={...data[i],name,role,edu,exp,stage,source,rank,cv,applyDate,hireDate,joinDate,notes}; candidate=data[i]; }
+  } else {
+    candidate={id:uid(),name,role,edu,exp,stage,source,rank,cv,applyDate,hireDate,joinDate,notes};
+    data.push(candidate);
+  }
+  saveC(data); closeM('m-cand'); renderAll();
+  toast(editId?'Kandidat diupdate ✓':'Kandidat ditambahkan ✓');
+  if(editId) sheetsUpdate(candidate);
+  else sheetsAdd(candidate);
+  editId=null;
+}
+
+function deleteC(id) {
+  if(!confirm('Hapus kandidat ini?')) return;
+  const data=loadC().filter(x=>x.id!==id);
+  saveC(data); renderAll(); toast('Kandidat dihapus');
+  sheetsDelete(id);
+}
+
+function promote(id) {
+  const data=loadC(); const c=data.find(x=>x.id===id); if(!c) return;
+  const promotable=['CV Screening','HR Interview','User Interview','Technical Test','Offering Letter'];
+  const i=promotable.indexOf(c.stage);
+  if(i>=0&&i<promotable.length-1){ c.stage=promotable[i+1]; }
+  else if(c.stage==='Offering Letter'){ c.stage='Hired'; if(!c.hireDate) c.hireDate=today(); }
+  saveC(data); renderAll(); toast(`Pindah ke ${c.stage} ✓`);
+  sheetsUpdate(c);
+}
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════ */
+function openSettings() {
+  const s=loadS();
+  document.getElementById('s-period').value=s.period||'';
+  document.getElementById('s-company').value=s.company||'';
+  document.getElementById('s-sheets-url').value=s.sheetsUrl||SHEETS_URL_DEFAULT;
+  document.getElementById('sheets-test-result').style.display='none';
+  openM('m-settings');
+}
+
+function saveSettings() {
+  saveS({
+    period: document.getElementById('s-period').value.trim(),
+    company: document.getElementById('s-company').value.trim(),
+    sheetsUrl: document.getElementById('s-sheets-url').value.trim()
+  });
+  closeM('m-settings'); applySettings(); toast('Settings disimpan ✓');
+}
+
+function resetData() {
+  if(!confirm('Yakin hapus SEMUA data? Tidak bisa di-undo!')) return;
+  localStorage.removeItem(CK);
+  closeM('m-settings'); renderAll(); toast('Data dihapus');
+  sheetsReplaceAll([]);
+}
+
+function applySettings() {
+  const s=loadS();
+  const parts=[];
+  if(s.company) parts.push(s.company);
+  if(s.period)  parts.push(s.period);
+  document.getElementById('period-label').textContent = parts.length ? '· '+parts.join(' · ') : '· 2025';
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════════ */
+function exportCSV() {
+  const data=loadC();
+  if(!data.length){ toast('Tidak ada data untuk diekspor'); return; }
+  const headers=['Nama','Role','Stage','Source','Apply Date','Hire Date','Days'];
+  const rows=data.map(c=>{
+    const days=c.stage==='Hired'&&c.hireDate?daysBetween(c.applyDate,c.hireDate):daysBetween(c.applyDate,today());
+    return [c.name,c.role,c.stage,c.source,c.applyDate,c.hireDate||'',days];
+  });
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='recruitment-pipeline.csv';
+  a.click();
+  toast('CSV diunduh ✓');
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT: FILE HANDLING
+═══════════════════════════════════════════ */
+function openImport() { resetImport(); openM('m-import'); }
+
+function resetImport() {
+  importRows=[]; importHeaders=[];
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('pdf-manual').style.display='none';
+  document.getElementById('btn-import-confirm').style.display='none';
+  document.getElementById('file-input').value='';
+  document.getElementById('drop-zone').style.display='block';
+}
+
+function dragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function dragLeave(e) { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function dropFile(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file=e.dataTransfer.files[0];
+  if(file) handleFile(file);
+}
+
+function handleFile(file) {
+  if(!file) return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='pdf') { handlePDF(); return; }
+  if(ext==='csv'||ext==='xlsx'||ext==='xls') { handleExcel(file, ext); return; }
+  alert('Format tidak didukung. Gunakan XLSX, CSV, atau PDF.');
+}
+
+function handlePDF() {
+  document.getElementById('drop-zone').style.display='none';
+  document.getElementById('pdf-manual').style.display='block';
+  document.getElementById('btn-import-confirm').style.display='none';
+}
+
+function handleExcel(file, ext) {
+  const reader=new FileReader();
+  reader.onload=function(e) {
+    try {
+      let wb;
+      if(ext==='csv') {
+        const text=new TextDecoder().decode(e.target.result);
+        wb=XLSX.read(text,{type:'string'});
+      } else {
+        wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      }
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(!json.length){ alert('File kosong atau tidak bisa dibaca.'); return; }
+
+      importHeaders=json[0].map(h=>String(h).trim());
+      importRows=json.slice(1).filter(r=>r.some(c=>c!==''));
+      showImportPreview();
+    } catch(err) {
+      alert('Gagal membaca file: '+err.message);
+    }
+  };
+  if(ext==='csv') reader.readAsArrayBuffer(file);
+  else reader.readAsArrayBuffer(file);
+}
+
+/* ── DETECT COLUMN MAPPING ── */
+function detectCol(headers, keywords) {
+  for(const kw of keywords) {
+    const idx=headers.findIndex(h=>h.toLowerCase().includes(kw.toLowerCase()));
+    if(idx>-1) return idx;
+  }
+  return -1;
+}
+
+function showImportPreview() {
+  const preview=document.getElementById('import-preview');
+  preview.style.display='block';
+  document.getElementById('drop-zone').style.display='none';
+  document.getElementById('btn-import-confirm').style.display='inline-flex';
+
+  // Auto-detect columns
+  const nameIdx   = detectCol(importHeaders,['nama','name','kandidat','candidate','applicant']);
+  const roleIdx   = detectCol(importHeaders,['role','posisi','position','jabatan','job','pekerjaan']);
+  const stageIdx  = detectCol(importHeaders,['stage','tahap','status','progress']);
+  const sourceIdx = detectCol(importHeaders,['source','sumber','referral','channel']);
+  const dateIdx   = detectCol(importHeaders,['apply','tanggal','date','tgl','applied']);
+  const hireDateIdx=detectCol(importHeaders,['hire date','hired','tanggal hire','join date']);
+
+  // Column mapper UI
+  const mapEl=document.getElementById('col-map');
+  const opts=['(tidak dipakai)',...importHeaders].map((h,i)=>`<option value="${i-1}">${h}</option>`).join('');
+  function selOpts(selectedIdx) {
+    return ['(tidak dipakai)',...importHeaders].map((h,i)=>{
+      const val=i-1;
+      return `<option value="${val}"${val===selectedIdx?' selected':''}>${h}</option>`;
+    }).join('');
+  }
+
+  mapEl.innerHTML=`
+    <div class="col-map-item"><label>Nama *</label><select id="cm-name">${selOpts(nameIdx)}</select></div>
+    <div class="col-map-item"><label>Role *</label><select id="cm-role">${selOpts(roleIdx)}</select></div>
+    <div class="col-map-item"><label>Stage</label><select id="cm-stage">${selOpts(stageIdx)}</select></div>
+    <div class="col-map-item"><label>Source</label><select id="cm-source">${selOpts(sourceIdx)}</select></div>
+    <div class="col-map-item"><label>Apply Date</label><select id="cm-date">${selOpts(dateIdx)}</select></div>
+    <div class="col-map-item"><label>Hire Date</label><select id="cm-hiredate">${selOpts(hireDateIdx)}</select></div>
+  `;
+
+  // Preview table (max 5 rows)
+  document.getElementById('preview-label').textContent=`${importRows.length} baris ditemukan — preview 5 pertama:`;
+  const thead=document.getElementById('preview-head');
+  const tbody=document.getElementById('preview-body');
+  thead.innerHTML='<tr>'+importHeaders.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  tbody.innerHTML=importRows.slice(0,5).map(r=>'<tr>'+importHeaders.map((_,i)=>`<td>${r[i]||''}</td>`).join('')+'</tr>').join('');
+}
+
+/* ── PARSE DATE ── */
+function parseDate(val) {
+  if(!val) return today();
+  const s=String(val).trim();
+  // Excel serial number
+  if(!isNaN(s) && Number(s)>40000) {
+    const d=XLSX.SSF.parse_date_code(Number(s));
+    if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  // Try ISO or common formats
+  const formats=[
+    /^(\d{4})-(\d{1,2})-(\d{1,2})$/,   // YYYY-MM-DD
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,  // DD/MM/YYYY
+    /^(\d{1,2})-(\d{1,2})-(\d{4})$/,    // DD-MM-YYYY
+  ];
+  for(const fmt of formats) {
+    const m=s.match(fmt);
+    if(m) {
+      if(fmt===formats[0]) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+      return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+  }
+  // Fallback: try native Date parse
+  const d=new Date(s);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
+  return today();
+}
+
+function normalizeStage(val) {
+  if(!val) return 'CV Screening';
+  const v=String(val).toLowerCase().trim();
+  if(v.includes('hired')||v.includes('hire')) return 'Hired';
+  if(v.includes('reject')) return 'Rejected';
+  if(v.includes('hold')) return 'Hold';
+  if(v.includes('offer')||v.includes('offering')) return 'Offering Letter';
+  if(v.includes('technical')||v.includes('test')) return 'Technical Test';
+  if(v.includes('user')) return 'User Interview';
+  if(v.includes('hr')||v.includes('human')) return 'HR Interview';
+  if(v.includes('cv')||v.includes('screen')) return 'CV Screening';
+  return 'CV Screening';
+}
+
+function confirmImport() {
+  const nameIdx  =parseInt(document.getElementById('cm-name').value);
+  const roleIdx  =parseInt(document.getElementById('cm-role').value);
+  const stageIdx =parseInt(document.getElementById('cm-stage').value);
+  const sourceIdx=parseInt(document.getElementById('cm-source').value);
+  const dateIdx  =parseInt(document.getElementById('cm-date').value);
+  const hdIdx    =parseInt(document.getElementById('cm-hiredate').value);
+
+  if(nameIdx<0||roleIdx<0){ alert('Kolom Nama dan Role wajib dipetakan.'); return; }
+
+  const data=loadC();
+  let added=0;
+  for(const row of importRows) {
+    const name=String(row[nameIdx]||'').trim();
+    const role=String(row[roleIdx]||'').trim();
+    if(!name||!role) continue;
+    data.push({
+      id: uid(),
+      name, role,
+      edu:'', exp:'', rank:'', cv:'', notes:'', joinDate:'',
+      stage:  stageIdx>=0  ? normalizeStage(row[stageIdx]) : 'CV Screening',
+      source: sourceIdx>=0 ? String(row[sourceIdx]||'Other').trim() : 'Other',
+      applyDate: dateIdx>=0 ? parseDate(row[dateIdx]) : today(),
+      hireDate:  hdIdx>=0   ? (row[hdIdx]?parseDate(row[hdIdx]):'') : '',
+    });
+    added++;
+  }
+  saveC(data);
+  closeM('m-import');
+  resetImport();
+  renderAll();
+  toast(`${added} kandidat berhasil diimport ✓`);
+  sheetsReplaceAll(data);
+}
+
+/* ═══════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════ */
+function renderAll() {
+  const data=loadC();
+  renderKPI(data);
+  renderFunnel(data);
+  renderSource(data);
+  renderRoleChart(data);
+  renderRoleFilter(data);
+  renderTable(data);
+  renderStageNav(data);
+  applySettings();
+}
+
+function renderKPI(data) {
+  const total=data.length;
+  const hired=data.filter(c=>c.stage==='Hired').length;
+  const offers=data.filter(c=>c.stage==='Offering Letter'||c.stage==='Hired').length;
+  const oar=offers>0?Math.round(hired/offers*100):null;
+  const hiredTTH=data.filter(c=>c.stage==='Hired'&&c.hireDate&&c.applyDate);
+  const avgTTH=hiredTTH.length>0?Math.round(hiredTTH.reduce((s,c)=>s+daysBetween(c.applyDate,c.hireDate),0)/hiredTTH.length):null;
+  document.getElementById('k-total').textContent=total;
+  document.getElementById('k-hired').textContent=hired;
+  document.getElementById('k-tth').textContent=avgTTH!==null?avgTTH+'d':'—';
+  document.getElementById('k-oar').textContent=oar!==null?oar+'%':'—';
+  document.getElementById('k-oar-note').textContent=offers>0?`${hired} hired dari ${offers} offer`:'Belum ada offer';
+}
+
+function renderFunnel(data) {
+  const fr=document.getElementById('funnel-role-filter').value;
+  const d=fr?data.filter(c=>c.role===fr):data;
+  const FUNNEL_STAGES=['CV Screening','HR Interview','User Interview','Technical Test','Offering Letter','Hired'];
+  const cumul=FUNNEL_STAGES.map((s,i)=>({
+    label:s,
+    count:d.filter(c=>FUNNEL_STAGES.indexOf(c.stage)>=i&&c.stage!=='Rejected').length
+  }));
+  const max=cumul[0].count||1;
+  const el=document.getElementById('funnel');
+  el.innerHTML='';
+  cumul.forEach((row,i)=>{
+    const pct=Math.round(row.count/max*100);
+    const conv=i===0?'100%':(cumul[i-1].count>0?Math.round(row.count/cumul[i-1].count*100)+'%':'0%');
+    const r=document.createElement('div'); r.className='funnel-row';
+    r.innerHTML=`<div class="funnel-label" style="font-size:0.65rem">${row.label}</div><div class="funnel-track"><div class="funnel-fill ${FILL_CLS[i]}" style="width:0%" data-w="${pct}%">${row.label}</div></div><div class="funnel-num">${row.count}</div><div class="funnel-pct">${conv}</div>`;
+    el.appendChild(r);
+    if(i<FUNNEL_STAGES.length-1){const dv=document.createElement('div');dv.className='funnel-sep';el.appendChild(dv);}
+  });
+  // Rejected count
+  const rejected=d.filter(c=>c.stage==='Rejected').length;
+  if(rejected>0){
+    const rejEl=document.createElement('div');
+    rejEl.style.cssText='margin-top:10px;padding:8px 12px;background:#f5f5f4;border-radius:6px;font-size:0.7rem;color:#78716c;display:flex;justify-content:space-between';
+    rejEl.innerHTML=`<span>Rejected</span><span style="font-weight:700">${rejected}</span>`;
+    el.appendChild(rejEl);
+  }
+  document.getElementById('funnel-sub').textContent=fr?`Role: ${fr}`:'All Roles Combined';
+  setTimeout(()=>document.querySelectorAll('.funnel-fill').forEach(b=>b.style.width=b.dataset.w),60);
+}
+
+function renderSource(data) {
+  const cnt={};
+  data.forEach(c=>{cnt[c.source]=(cnt[c.source]||0)+1;});
+  const total=data.length||1;
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+  const el=document.getElementById('source-list');
+  el.innerHTML='';
+  if(!sorted.length){el.innerHTML='<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:20px">Belum ada data</div>';return;}
+  sorted.forEach(([name,count],i)=>{
+    const pct=Math.round(count/total*100);
+    const col=SRC_COLORS[i%SRC_COLORS.length];
+    const item=document.createElement('div'); item.className='source-item';
+    item.innerHTML=`<div class="source-row"><span class="source-name">${name}</span><span class="source-pct" style="color:${col}">${pct}% <span style="color:var(--muted);font-size:0.65rem;font-weight:400">(${count})</span></span></div><div class="source-track"><div class="source-fill" style="width:0%;background:${col}" data-w="${pct}%"></div></div>`;
+    el.appendChild(item);
+  });
+  setTimeout(()=>document.querySelectorAll('.source-fill').forEach(b=>b.style.width=b.dataset.w),80);
+}
+
+function renderRoleChart(data) {
+  const cnt={};
+  data.forEach(c=>{ if(c.role) cnt[c.role]=(cnt[c.role]||0)+1; });
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const el=document.getElementById('role-chart');
+  el.innerHTML='';
+  if(!sorted.length){el.innerHTML='<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:20px">Belum ada data</div>';return;}
+  const ROLE_COLORS=['#6d28d9','#0f766e','#3730a3','#c2410c','#be185d','#1d4ed8','#b45309','#4a7c59'];
+  const total=sorted.reduce((s,[,v])=>s+v,0);
+
+  // Build SVG pie chart
+  let startAngle=-Math.PI/2;
+  let slices='';
+  const cx=100,cy=100,r=80;
+  sorted.forEach(([name,count],i)=>{
+    const angle=(count/total)*2*Math.PI;
+    const endAngle=startAngle+angle;
+    const x1=cx+r*Math.cos(startAngle), y1=cy+r*Math.sin(startAngle);
+    const x2=cx+r*Math.cos(endAngle),   y2=cy+r*Math.sin(endAngle);
+    const large=angle>Math.PI?1:0;
+    const col=ROLE_COLORS[i%ROLE_COLORS.length];
+    slices+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${col}" stroke="white" stroke-width="2">
+      <title>${name}: ${count} aplikasi</title>
+    </path>`;
+    startAngle=endAngle;
+  });
+
+  // Legend
+  const legend=sorted.map(([name,count],i)=>{
+    const pct=Math.round(count/total*100);
+    const col=ROLE_COLORS[i%ROLE_COLORS.length];
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="width:11px;height:11px;border-radius:3px;background:${col};flex-shrink:0"></div>
+      <span style="font-size:0.7rem;color:var(--ink-light);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${name}">${name}</span>
+      <span style="font-size:0.7rem;font-weight:700;color:var(--ink)">${pct}%</span>
+      <span style="font-size:0.65rem;color:var(--muted)">(${count})</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+      <svg viewBox="0 0 200 200" style="width:160px;height:160px;flex-shrink:0">${slices}</svg>
+      <div style="flex:1;min-width:140px">${legend}</div>
+    </div>`;
+}
+  const roles=[...new Set(data.map(c=>c.role))].sort();
+  // table filter
+  const sel=document.getElementById('f-role');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All Roles</option>'+roles.map(r=>`<option${r===cur?' selected':''}>${r}</option>`).join('');
+  // funnel filter
+  const fsel=document.getElementById('funnel-role-filter');
+  const fcur=fsel.value;
+  fsel.innerHTML='<option value="">All Roles</option>'+roles.map(r=>`<option${r===fcur?' selected':''}>${r}</option>`).join('');
+}
+
+function renderStageNav(data) {
+  const el=document.getElementById('stage-nav');
+  el.innerHTML=STAGES.map(s=>{
+    const cnt=data.filter(c=>c.stage===s).length;
+    return `<div class="nav-item" style="justify-content:space-between"><span>${s}</span><span style="font-size:0.68rem;font-weight:700;background:rgba(255,255,255,0.1);padding:1px 7px;border-radius:10px">${cnt}</span></div>`;
+  }).join('');
+}
+
+function renderTable(data) {
+  const fs=document.getElementById('f-stage').value;
+  const fr=document.getElementById('f-role').value;
+  let d=[...data].sort((a,b)=>new Date(b.applyDate)-new Date(a.applyDate));
+  if(fs) d=d.filter(c=>c.stage===fs);
+  if(fr) d=d.filter(c=>c.role===fr);
+  document.getElementById('table-count').textContent=`${d.length} kandidat${fs?' · '+fs:''}${fr?' · '+fr:''}`;
+  const tbody=document.getElementById('tbody');
+  const empty=document.getElementById('empty-state');
+  tbody.innerHTML='';
+  if(!d.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  d.forEach(c=>{
+    const days=c.stage==='Hired'&&c.hireDate?daysBetween(c.applyDate,c.hireDate):daysBetween(c.applyDate,today());
+    const si=STAGES.indexOf(c.stage);
+    const canPromote=si>=0&&si<STAGES.length-2; // don't promote past Hired
+    const rankBadge=c.rank?`<span class="rank-badge rank-${c.rank}">${c.rank}</span>`:'—';
+    const cvLink=c.cv?`<a class="cv-link" href="${c.cv}" target="_blank">📄 CV</a>`:'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-weight:600;color:var(--ink);white-space:nowrap">${c.name}</td>
+      <td style="color:var(--ink-light);white-space:nowrap">${c.role}</td>
+      <td style="font-size:0.7rem;color:var(--muted)">${c.edu||'—'}</td>
+      <td style="font-size:0.7rem;color:var(--muted)">${c.exp||'—'}</td>
+      <td><span class="stage-badge ${STAGE_CLS[c.stage]||''}">${c.stage}</span></td>
+      <td style="text-align:center">${rankBadge}</td>
+      <td style="color:var(--muted);font-size:0.72rem">${c.source}</td>
+      <td>${cvLink}</td>
+      <td style="color:var(--muted);white-space:nowrap">${fmtDate(c.applyDate)}</td>
+      <td><span class="days-chip">${days}d</span></td>
+      <td class="notes-cell" title="${(c.notes||'').replace(/"/g,'&quot;')}">${c.notes||'—'}</td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${canPromote?`<button class="btn btn-outline btn-xs" onclick="promote('${c.id}')">→</button>`:''}
+          <button class="btn btn-outline btn-xs" onclick="openEdit('${c.id}')">Edit</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteC('${c.id}')">Del</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SYNC FROM SHEETS (manual pull)
+═══════════════════════════════════════════ */
+async function syncFromSheets() {
+  toast('Mengambil data dari Google Sheets...');
+  const data = await loadFromSheets();
+  if (data !== null) {
+    renderAll();
+    toast(`Data diperbarui dari Sheets ✓ (${data.length} kandidat)`);
+  } else {
+    toast('Gagal mengambil data dari Sheets');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+async function init() {
+  applySettings();
+  // Try load from Sheets first, fallback to localStorage
+  const sheetsData = await loadFromSheets();
+  if (sheetsData && sheetsData.length > 0) {
+    renderAll();
+  } else {
+    // If sheets empty or error, use localStorage
+    renderAll();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
